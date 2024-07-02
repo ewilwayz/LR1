@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<title>7laba</title>
+<style>
+body {
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+flex-direction: column;
+position: relative;
+}
+</style>
+</head>
+<body>
+<input id="tokens" type="text" placeholder="Введите токены здесь">
+<button onclick="parse()">Парсить</button>
+<script>
+    
+    let table = [
+    {},
+    {'Pr': 0, 'Bl': 2, 'Op': 3, 'id': 6, 'I': 9, 'A': 23},
+    {'$': -1},
+    {'$': -2, ';': 4},
+    {'Op': 3, 'Bl': 5, 'id': 6, 'I': 9, 'A': 23},
+    {'$': -3},
+    {':=': 7},
+    {'exp': 8, 'fac': 14, 'prim': 17, 'id': 20, 'digit': 21, '0': 22, 'A': 23},
+    {';': -4, 'E': -4, '$': -4},
+    {'exp': 10, 'fac': 14, 'prim': 17, 'id': 20, 'digit': 21, '0': 22, 'A': 23},
+    {'T': 11},
+    {'id': 6, 'I ': 9, 'Op': 12, 'A': 23},
+    {'E': 13},
+    {';': -5, 'E': -5, '$': -5},
+    {';': -6, 'T': -6, 'E': -6, '$': -6, '#': 15},
+    {'fac': 14, 'exp': 16, 'prim': 17, 'id': 20, 'digit': 21, '0': 22, 'A': 23},
+    {';': -7, 'T': -7, 'E': -7, '$': -7},
+    {';': -8, 'T': -8, 'E': -8, '#': -8, '$': -8, '&': 18},
+    {'prim': 17, 'fac': 19, 'id': 20, 'digit': 21, '0': 22, 'A': 23},
+    {';': -9, 'T': -9, 'E': -9, '#': -9, '$': -9},
+    {';': -10, 'T': -10, 'E': -10, '#': -10, '&': -10, '$': -10},
+    {';': -11, 'T': -11, 'E': -11, '#': -11, '&': -11, '$': -11},
+    {';': -12, 'T': -12, 'E': -12, '#': -12, '&': -12, '$': -12},
+    {';': -13, ':=': -13, 'T': -13, 'E': -13, '#': -13, '&': -13, '$': -13}
+];
+    
+    class Stack {
+    constructor() {
+        this.array = [];
+    }
+
+    pop() {
+        if (this.isEmpty()) {
+            throw new Error('Stack is empty');
+        }
+
+        return this.array.pop();
+    }
+
+    push(data) {
+        this.array.push(data);
+    }
+
+    peek() {
+        if (this.isEmpty()) {
+            throw new Error('Stack is empty');
+        }
+
+        return this.array[this.array.length - 1];
+    }
+
+    isEmpty() {
+        return this.array.length === 0;
+    }
+
+    size() {
+        return this.array.length;
+    }
+
+    getArray() {
+        return this.array;
+    }
+
+    print() {
+        console.log(this.array.join(' '));
+    }
+}
+
+    let rules = [
+    {lhs: 'Pr', rhs: ['Bl']},
+    {lhs: 'Bl', rhs: ['Op']},
+    {lhs: 'Bl', rhs: ['Op', ';', 'Bl']},
+    {lhs: 'Op', rhs: ['id', ':=', 'exp']},
+    {lhs: 'Op', rhs: ['I', 'exp', 'T', 'Op', 'E']},
+    {lhs: 'exp', rhs: ['fac']},
+    {lhs: 'exp', rhs: ['fac', '#', 'exp']},
+    {lhs: 'fac', rhs: ['prim']},
+    {lhs: 'fac', rhs: ['prim', '&', 'fac']},
+    {lhs: 'prim', rhs: ['id']},
+    {lhs: 'prim', rhs: ['digit']},
+    {lhs: 'digit', rhs: ['0']},
+    {lhs: 'id', rhs: ['A']}
+]
+
+function LR1_parser(tokens, table){
+    let stack = new Stack();
+    stack.push('$');
+    let stack_parsed = new Stack();
+    stack_parsed.push(['$', 1]);
+    
+    for (let i = tokens.length - 1; i >= 0; i--) {
+        stack.push(tokens[i]);
+    }
+    while (true) {
+        if (stack.isEmpty()) {
+            throw new Error('Stack is empty');
+        }
+        let state = stack_parsed.peek()[1];
+        let symbol = stack.peek();
+        let action = table[state][symbol];
+
+        if (action === undefined) {
+            throw new Error(`Unexpected symbol ${symbol} in state ${state}`);
+        } else if (action > 0) {
+            stack_parsed.push([symbol, action]);
+            stack.pop();
+        } else if (action < 0){
+            let rule = rules[(-action) - 1];
+            for (let i = 0; i < rule.rhs.length; i++) {
+                stack_parsed.pop();
+            }
+            stack.push(rule.lhs);
+        }
+        if (action === 0) {
+            return true;
+        }
+    }
+}
+    
+function parse() {
+    let inputElement = document.getElementById('tokens');
+    let tokens = inputElement.value.split(' ');
+    try {
+        let result = LR1_parser(tokens, table);
+        alert('Parsing successful: ' + result);
+    } catch (error) {
+        alert('Parsing failed: ' + error.message);
+    }
+}
+    //A := 0 # A
+    //I A T A := 0 E
+    //A := 0
+</script>
+</body>
+</html>
