@@ -1,7 +1,8 @@
-# LR1
+# LR1_parser
 This code is an LR1 parser, according to the grammar given below. This parser works according to the table of states and rules of the grammar itself.
 
 **Grammar**
+
 S ::= <программа>$
 <программа>::=<блок>
 <блок>::=<оператор>
